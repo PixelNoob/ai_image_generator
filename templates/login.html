@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>Login</h2>
+
+        <form method="POST">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="input-field") }}
+            </div>
+
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(class="input-field") }}
+            </div>
+
+            <button type="submit" class="login-button">{{ form.submit.label }}</button>
+        </form>
+
+        {% for message in get_flashed_messages() %}
+        <p class="error-message">{{ message }}</p>
+        {% endfor %}
+    </div>
+
+</body>
+</html>
