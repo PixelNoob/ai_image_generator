@@ -62,7 +62,7 @@ def index():
         image_prompt = request.form["image"]
 
         payload = {
-            "model": "fluently-xl",
+            "model": "flux-dev", #pony-realism
             "prompt": image_prompt,
             "width": 512,
             "height": 512
