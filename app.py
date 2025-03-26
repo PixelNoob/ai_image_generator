@@ -11,6 +11,7 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
 
 # Load environment variables
 load_dotenv()
@@ -22,6 +23,11 @@ limiter = Limiter(
     app=app,
     default_limits=["1000 per day", "200 per hour"]
 )
+
+## database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
 # API Details
 API_URL = "https://api.venice.ai/api/v1/image/generate"
@@ -36,29 +42,34 @@ login_manager.init_app(app)
 latest_image = None
 
 # Dummy user database (Replace with a real database later)
-users = {
-    "admin": {
-        "password": generate_password_hash(os.getenv("password"))  # Hashed password
-    }
-}
+#users = {
+#    "admin": {
+#        "password": generate_password_hash(os.getenv("password"))  # Hashed password
+#    }
+#}
 
-# User class for Flask-Login
-class User(UserMixin):
-    def __init__(self, username):
-        self.id = username
+## real db
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    latest_image = db.Column(db.Text, nullable=True)
 
 @login_manager.user_loader
-def load_user(username):
-    """Load user from dictionary"""
-    if username in users:
-        return User(username)
-    return None
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 # Login Form
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("Login")
+
+#register form
+class RegisterForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+    submit = SubmitField("Register")
 
 @app.route("/", methods=["GET", "POST"])
 @login_required  # Protect the route, only logged-in users can access it
@@ -84,30 +95,28 @@ def index():
 
         if response.status_code == 200:
             response_json = response.json()
-            latest_image = response_json["images"][0]
+            current_user.latest_image = response_json["images"][0]
+            db.session.commit()
 
-    return render_template("index.html", latest_image=(latest_image is not None))
+    return render_template("index.html", latest_image=(current_user.latest_image is not None))
 
 @app.route("/image")
 @login_required
 def get_image():
-    """Serve the latest generated image as a PNG."""
-    global latest_image
-    if latest_image:
-        image_data = base64.b64decode(latest_image)
+    if current_user.latest_image:
+        image_data = base64.b64decode(current_user.latest_image)
         return Response(image_data, mimetype="image/png")
     return "No image generated yet.", 404
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """Login page"""
     form = LoginForm()
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
 
-        if username in users and check_password_hash(users[username]["password"], password):
-            user = User(username)
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
             login_user(user)
             flash("Login successful!", "success")
             return redirect(url_for("index"))
@@ -127,6 +136,33 @@ def logout():
 @app.route("/test")
 def test():
     return "This is a test endpoint."
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    form = RegisterForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+
+        if User.query.filter_by(username=username).first():
+            flash("Username already exists", "warning")
+        else:
+            new_user = User(
+                username=username,
+                password=generate_password_hash(password)
+            )
+            db.session.add(new_user)
+            db.session.commit()
+            login_user(new_user)
+            flash("Registration successful!", "success")
+            return redirect(url_for("index"))
+
+    return render_template("register.html", form=form)
+
+
+#create database once, then comment
+with app.app_context():
+    db.create_all()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

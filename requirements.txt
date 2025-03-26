@@ -6,3 +6,4 @@ werkzeug
 requests
 python-dotenv
 flask-limiter
+flask-sqlalchemy

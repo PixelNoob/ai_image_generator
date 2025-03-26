@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Register</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
     <div class="login-container">
-        <h2>Login</h2>
+        <h2>Register</h2>
 
         <form method="POST">
             {{ form.hidden_tag() }}
@@ -26,14 +26,13 @@
 
             <button type="submit" class="login-button">{{ form.submit.label }}</button>
         </form>
-        <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
 
         {% for message in get_flashed_messages() %}
         <p class="error-message">{{ message }}</p>
         {% endfor %}
-    </div>
-    
 
+        <p class="register-link">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+    </div>
 
 </body>
 </html>
