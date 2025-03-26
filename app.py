@@ -57,7 +57,7 @@ class User(UserMixin, db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 # Login Form
 class LoginForm(FlaskForm):
@@ -115,7 +115,7 @@ def login():
         username = form.username.data
         password = form.password.data
 
-        user = User.query.filter_by(username=username).first()
+        user = db.session.query(User).filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
             flash("Login successful!", "success")
@@ -144,7 +144,7 @@ def register():
         username = form.username.data
         password = form.password.data
 
-        if User.query.filter_by(username=username).first():
+        if db.session.query(User).filter_by(username=username).first():
             flash("Username already exists", "warning")
         else:
             new_user = User(
@@ -165,4 +165,4 @@ with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=False)
+    app.run(host='0.0.0.0', port=5001, debug=True)
