@@ -5,3 +5,4 @@ wtforms
 werkzeug
 requests
 python-dotenv
+flask-limiter

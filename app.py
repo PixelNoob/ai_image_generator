@@ -5,6 +5,8 @@ import base64
 from flask import Flask, render_template, request, Response, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -15,6 +17,11 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["1000 per day", "200 per hour"]
+)
 
 # API Details
 API_URL = "https://api.venice.ai/api/v1/image/generate"
@@ -116,6 +123,10 @@ def logout():
     logout_user()
     flash("You have been logged out.", "info")
     return redirect(url_for("login"))
+
+@app.route("/test")
+def test():
+    return "This is a test endpoint."
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
