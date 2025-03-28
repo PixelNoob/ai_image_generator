@@ -17,6 +17,7 @@ from flask_sqlalchemy import SQLAlchemy
 load_dotenv()
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 limiter = Limiter(
     get_remote_address,
