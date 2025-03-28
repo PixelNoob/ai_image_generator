@@ -139,6 +139,7 @@ def test():
     return "This is a test endpoint."
 
 @app.route("/register", methods=["GET", "POST"])
+@limiter.limit("3/hour", override_defaults=False)
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
