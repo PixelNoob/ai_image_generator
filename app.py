@@ -141,6 +141,7 @@ def test():
     return "This is a test endpoint."
 
 @app.route("/register", methods=["GET", "POST"])
+@limiter.limit("3/hour", override_defaults=False)
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
@@ -168,4 +169,4 @@ with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=False)
