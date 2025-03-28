@@ -28,6 +28,7 @@
             <button type="submit" class="login-button">{{ form.submit.label }}</button>
         </form>
         <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+        <p>Back to homepage <a href="https://generateimage.xyz/" class="nav-link">Homepage</a></p>
 
         {% for message in get_flashed_messages() %}
         <p class="error-message">{{ message }}</p>
