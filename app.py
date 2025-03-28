@@ -83,7 +83,8 @@ def index():
             "model": "flux-dev", #pony-realism
             "prompt": image_prompt,
             "width": 512,
-            "height": 512
+            "height": 512,
+            "hide_watermark": True
         }
 
         headers = {
@@ -165,4 +166,4 @@ with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=False)
